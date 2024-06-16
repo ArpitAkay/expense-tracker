@@ -1,4 +1,4 @@
-package com.restapis.expensetracker.model.user_info;
+package com.restapis.expensetracker.model.sign_up;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -12,7 +12,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class UserInfoRequest {
-    private int id;
     @NotEmpty
     @NotBlank
     private String name;

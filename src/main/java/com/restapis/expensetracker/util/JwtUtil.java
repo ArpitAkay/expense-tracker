@@ -3,14 +3,14 @@ package com.restapis.expensetracker.util;
 import com.restapis.expensetracker.entity.UserInfo;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SecureDigestAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,31 +35,26 @@ public class JwtUtil {
     }
 
     public Claims extractAllClaims(String token){
-        return Jwts.parser().setSigningKey(getSignKey()).build().parseSignedClaims(token).getPayload();
+        return Jwts.parser().verifyWith(getSignKey()).build().parseSignedClaims(token).getPayload();
     }
 
     private Boolean isTokenExpired(String token){
         return extractExpiration(token).before(new Date());
     }
 
-    public String generateToken(UserInfo userInfo){
+    public String generateToken(UserInfo userInfo, int expiryHours){
         Map<String, Object> claims = new HashMap<>();
 //        claims.put("authorities", userInfo.getRoles());
 
-        return createToken(claims, userInfo.getEmail(), (1000 * 60 * 60 * 9));
+        long expirationTimeInMilliseconds = 1000L * 60 * 60 * expiryHours;
+        return createToken(claims, userInfo.getEmail(), expirationTimeInMilliseconds);
     }
 
-    public String generateTokenFor30Minutes(UserInfo userInfo){
-        Map<String, Object> claims = new HashMap<>();
-//        claims.put("authorities", userInfo.getRoles());
-
-        return createToken(claims, userInfo.getEmail(), (1000 * 60 * 30));
-    }
-
-    private String createToken(Map<String, Object> claims, String email, int time) {
-        return Jwts.builder().setClaims(claims).setSubject(email).setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + time))
-                .signWith(getSignKey(), SignatureAlgorithm.HS256).compact();
+    private String createToken(Map<String, Object> claims, String email, long time) {
+        System.out.println(System.currentTimeMillis() + time);
+        return Jwts.builder().claims(claims).subject(email).issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + time))
+                .signWith(getSignKey(), (SecureDigestAlgorithm) Jwts.SIG.HS256).compact();
     }
 
     public Boolean validateToken(String token, UserDetails userDetails){
@@ -67,7 +62,7 @@ public class JwtUtil {
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    private Key getSignKey(){
+    private SecretKey getSignKey(){
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
