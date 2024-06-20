@@ -18,8 +18,8 @@ public interface Endpoint {
     String RENEW_ACCESS_TOKEN = "/renew-access-token";
 
     // User Pin Endpoints
-    String ADD_USER_PIN = "/user-pin";
-    String VERIFY_USER_PIN = "/user-pin-verify";
+    String ADD_USER_PIN = "/user-pin/{userId}";
+    String VERIFY_USER_PIN = "/user-pin-verify/{userId}";
 
     // User Infos Endpoints
     String USER_INFO = "/user-info/{userId}";
