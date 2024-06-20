@@ -66,4 +66,11 @@ public class JwtUtil {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
+
+    public String extractToken(String token){
+        if(token.startsWith("Bearer ")){
+            return token.substring(7);
+        }
+        return token;
+    }
 }

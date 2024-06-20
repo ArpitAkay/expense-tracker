@@ -6,12 +6,14 @@ import com.restapis.expensetracker.model.api.ApiResponse;
 import com.restapis.expensetracker.model.forget_password.ForgetPasswordRequest;
 import com.restapis.expensetracker.model.login.LoginRequest;
 import com.restapis.expensetracker.model.login.LoginResponse;
+import com.restapis.expensetracker.model.renew_access_token.RenewAccessTokenResponse;
 import com.restapis.expensetracker.model.reset_password.ResetPasswordRequest;
 import com.restapis.expensetracker.model.send_otp_mail_again.SendOtpMailAgainRequest;
 import com.restapis.expensetracker.model.sign_up.UserInfoRequest;
 import com.restapis.expensetracker.model.sign_up.UserInfoResponse;
 import com.restapis.expensetracker.model.verify_otp.OtpRequest;
 import com.restapis.expensetracker.service.AuthenticationService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -72,5 +74,10 @@ public class AuthenticationController {
             @Valid @RequestBody ResetPasswordRequest resetPasswordRequest)
             throws RestException {
         return new ResponseEntity<>(authenticationService.resetPassword(token, resetPasswordRequest), HttpStatus.OK);
+    }
+
+    @GetMapping(Endpoint.RENEW_ACCESS_TOKEN)
+    public ResponseEntity<RenewAccessTokenResponse> renewAccessToken(HttpServletRequest request) throws RestException {
+        return new ResponseEntity(authenticationService.renewAccessToken(request), HttpStatus.OK);
     }
 }

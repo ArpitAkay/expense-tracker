@@ -5,11 +5,13 @@ import com.restapis.expensetracker.model.api.ApiResponse;
 import com.restapis.expensetracker.model.forget_password.ForgetPasswordRequest;
 import com.restapis.expensetracker.model.login.LoginRequest;
 import com.restapis.expensetracker.model.login.LoginResponse;
+import com.restapis.expensetracker.model.renew_access_token.RenewAccessTokenResponse;
 import com.restapis.expensetracker.model.reset_password.ResetPasswordRequest;
 import com.restapis.expensetracker.model.send_otp_mail_again.SendOtpMailAgainRequest;
 import com.restapis.expensetracker.model.sign_up.UserInfoRequest;
 import com.restapis.expensetracker.model.sign_up.UserInfoResponse;
 import com.restapis.expensetracker.model.verify_otp.OtpRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.UUID;
 
@@ -27,4 +29,6 @@ public interface AuthenticationService {
     ApiResponse validateResetPasswordToken(UUID token) throws RestException;
 
     ApiResponse resetPassword(UUID token, ResetPasswordRequest resetPasswordRequest) throws RestException;
+
+    RenewAccessTokenResponse renewAccessToken(HttpServletRequest request) throws RestException;
 }

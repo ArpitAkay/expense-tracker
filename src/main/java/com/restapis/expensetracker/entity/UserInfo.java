@@ -50,4 +50,6 @@ public class UserInfo extends Audit {
             )
     )
     private Set<Role> roles;
+
+    private String pin;
 }

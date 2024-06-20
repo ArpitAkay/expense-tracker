@@ -10,10 +10,12 @@ import com.restapis.expensetracker.model.api.ApiResponse;
 import com.restapis.expensetracker.model.forget_password.ForgetPasswordRequest;
 import com.restapis.expensetracker.model.login.LoginRequest;
 import com.restapis.expensetracker.model.login.LoginResponse;
+import com.restapis.expensetracker.model.renew_access_token.RenewAccessTokenResponse;
 import com.restapis.expensetracker.model.reset_password.ResetPasswordRequest;
 import com.restapis.expensetracker.model.send_otp_mail_again.SendOtpMailAgainRequest;
 import com.restapis.expensetracker.model.sign_up.UserInfoRequest;
 import com.restapis.expensetracker.model.sign_up.UserInfoResponse;
+import com.restapis.expensetracker.model.user_info.UserInfoUserDetailsService;
 import com.restapis.expensetracker.model.verify_otp.OtpRequest;
 import com.restapis.expensetracker.repository.OtpRepository;
 import com.restapis.expensetracker.repository.ResetPasswordTokenRepository;
@@ -23,10 +25,12 @@ import com.restapis.expensetracker.service.AuthenticationService;
 import com.restapis.expensetracker.util.JwtUtil;
 import com.restapis.expensetracker.util.MailUtil;
 import com.restapis.expensetracker.util.OtpUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
@@ -53,6 +57,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final OtpUtil otpUtil;
     private final ResetPasswordTokenRepository resetPasswordTokenRepository;
     private final TemplateEngine templateEngine;
+    private final UserInfoUserDetailsService userInfoUserDetailsService;
 
     public AuthenticationServiceImpl(
             UserInfoRepository userInfoRepository,
@@ -64,7 +69,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             OtpRepository otpRepository,
             OtpUtil otpUtil,
             ResetPasswordTokenRepository resetPasswordTokenRepository,
-            TemplateEngine templateEngine) {
+            TemplateEngine templateEngine, UserInfoUserDetailsService userInfoUserDetailsService) {
         this.userInfoRepository = userInfoRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
@@ -75,6 +80,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.otpUtil = otpUtil;
         this.resetPasswordTokenRepository = resetPasswordTokenRepository;
         this.templateEngine = templateEngine;
+        this.userInfoUserDetailsService = userInfoUserDetailsService;
     }
 
     @Override
@@ -244,5 +250,30 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         resetPasswordTokenRepository.delete(resetPasswordToken);
         return new ApiResponse("Password reset successfully");
+    }
+
+    @Override
+    public RenewAccessTokenResponse renewAccessToken(HttpServletRequest request) throws RestException {
+        String authorization = request.getHeader("Authorization");
+
+        if(authorization == null) {
+            throw new RestException("Authorization header is missing");
+        }
+
+        String refreshToken = jwtUtil.extractToken(authorization);
+        String email= jwtUtil.extractUsername(refreshToken);
+
+        if(email == null) {
+            throw new RestException("Invalid refresh token");
+        }
+
+        UserDetails userDetails = userInfoUserDetailsService.loadUserByUsername(email);
+
+        if(Boolean.TRUE.equals(jwtUtil.validateToken(refreshToken, userDetails))) {
+            String accessToken = jwtUtil.generateToken((UserInfo) userDetails, 9);
+            return new RenewAccessTokenResponse(accessToken);
+        } else {
+            throw new RestException("Invalid refresh token");
+        }
     }
 }

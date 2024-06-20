@@ -12,6 +12,14 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
+  sql:
+    init:
+      mode: always
+  docker:
+    compose:
+#      enabled: false
+      file: docker-compose.yml
+
 
 jwt:
   secretKey: 1fab10b795c63e52d1fe08f8a314e99eb79e2a899bde3c5aad12c4c7ae48d6abb6209e37be9f063f57ae5b8a1b8a53686135d95988aa623292f4a46b8382fe7e299c9d34fd5e57bdacc2c58b6b74f86d

@@ -15,6 +15,11 @@ public interface Endpoint {
     String FORGET_PASSWORD = "/forget-password";
     String VALIDATE_RESET_PASSWORD_TOKEN = "/validate-reset-password-token";
     String RESET_PASSWORD = "/reset-password";
+    String RENEW_ACCESS_TOKEN = "/renew-access-token";
+
+    // User Pin Endpoints
+    String ADD_USER_PIN = "/user-pin";
+    String VERIFY_USER_PIN = "/user-pin-verify";
 
     // User Infos Endpoints
     String USER_INFO = "/user-info/{userId}";
