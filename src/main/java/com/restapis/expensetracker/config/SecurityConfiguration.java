@@ -114,5 +114,6 @@ public class SecurityConfiguration {
             Endpoint.BASE_URL + Endpoint.FORGET_PASSWORD,
             Endpoint.BASE_URL + Endpoint.VALIDATE_RESET_PASSWORD_TOKEN,
             Endpoint.BASE_URL + Endpoint.RESET_PASSWORD,
+            Endpoint.BASE_URL + Endpoint.RENEW_ACCESS_TOKEN,
     };
 }

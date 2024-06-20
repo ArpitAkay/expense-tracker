@@ -260,6 +260,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new RestException("Authorization header is missing");
         }
 
+        if(authorization.startsWith("Bearer ")) {
+            authorization = authorization.substring(7);
+        }
+
         String refreshToken = jwtUtil.extractToken(authorization);
         String email= jwtUtil.extractUsername(refreshToken);
 
@@ -270,7 +274,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         UserDetails userDetails = userInfoUserDetailsService.loadUserByUsername(email);
 
         if(Boolean.TRUE.equals(jwtUtil.validateToken(refreshToken, userDetails))) {
-            String accessToken = jwtUtil.generateToken((UserInfo) userDetails, 9);
+            String username = userDetails.getUsername();
+            UserInfo userInfo = userInfoRepository.findByEmail(username).orElseThrow(() ->
+                new RestException("User not found for email: " + username));
+            String accessToken = jwtUtil.generateToken(userInfo, 9);
             return new RenewAccessTokenResponse(accessToken);
         } else {
             throw new RestException("Invalid refresh token");
