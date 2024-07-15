@@ -13,26 +13,20 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
     private final UserInfoRepository userInfoRepository;
     private final ModelMapper modelMapper;
+    private final SecurityUtil securityUtil;
 
     public UserServiceImpl(
             UserInfoRepository userInfoRepository,
-            ModelMapper modelMapper) {
+            ModelMapper modelMapper, SecurityUtil securityUtil
+    ) {
         this.userInfoRepository = userInfoRepository;
         this.modelMapper = modelMapper;
+        this.securityUtil = securityUtil;
     }
 
     @Override
     public UserInfoResponse getUserInfo(int userId) throws RestException {
-        UserInfo userInfo = userInfoRepository.findById(userId).orElseThrow(() -> new RestException(
-                "User not found"
-        ));
-
-        String email = SecurityUtil.retrieveEmailFromSecurityContext();
-
-        if(!userInfo.getEmail().equals(email)) {
-            throw new RestException("You cannot see other user's information");
-        }
-
+        UserInfo userInfo = securityUtil.checkIfUserIsAuthorized(userId);
         return modelMapper.map(userInfo, UserInfoResponse.class);
     }
 }

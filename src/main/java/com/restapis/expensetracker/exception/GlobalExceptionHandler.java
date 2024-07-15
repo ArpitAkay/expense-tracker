@@ -17,6 +17,8 @@ import java.net.URISyntaxException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private static final String VALIDATION_ERROR = "Validation Error";
+    private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleException(Exception e) throws URISyntaxException {
@@ -24,7 +26,7 @@ public class GlobalExceptionHandler {
 
         ProblemDetail problemDetail;
         if (e instanceof MethodArgumentNotValidException methodArgumentNotValidException) {
-            problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+            problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, VALIDATION_ERROR);
             methodArgumentNotValidException.getBindingResult().getAllErrors().forEach(objectError -> methodArgumentNotValidException.getBindingResult().getAllErrors().forEach((error) -> {
                 String fieldName = ((FieldError) error).getField();
                 String message = error.getDefaultMessage();
@@ -37,7 +39,7 @@ public class GlobalExceptionHandler {
                 || e instanceof SignatureException || e instanceof ExpiredJwtException) {
             problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
         } else {
-            problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error");
+            problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR);
         }
 
         return problemDetail;

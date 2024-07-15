@@ -108,11 +108,12 @@ public class SecurityConfiguration {
             Endpoint.SWAGGER_UI_RESOURCES,
             Endpoint.SWAGGER_RESOURCES,
             Endpoint.BASE_URL + Endpoint.SIGN_UP,
-            Endpoint.BASE_URL + Endpoint.VERIFY_OTP,
-            Endpoint.BASE_URL + Endpoint.SEND_OTP_MAIL_AGAIN,
+            Endpoint.BASE_URL + Endpoint.VERIFY_EMAIL,
+            Endpoint.BASE_URL + Endpoint.SEND_VERIFICATION_MAIL_AGAIN,
             Endpoint.BASE_URL + Endpoint.LOGIN,
             Endpoint.BASE_URL + Endpoint.FORGET_PASSWORD,
             Endpoint.BASE_URL + Endpoint.VALIDATE_RESET_PASSWORD_TOKEN,
             Endpoint.BASE_URL + Endpoint.RESET_PASSWORD,
+            Endpoint.BASE_URL + Endpoint.RENEW_ACCESS_TOKEN,
     };
 }

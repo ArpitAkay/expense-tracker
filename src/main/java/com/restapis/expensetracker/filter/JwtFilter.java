@@ -1,5 +1,6 @@
 package com.restapis.expensetracker.filter;
 
+import com.restapis.expensetracker.exception.RestException;
 import com.restapis.expensetracker.model.user_info.UserInfoUserDetailsService;
 import com.restapis.expensetracker.util.JwtUtil;
 import jakarta.servlet.FilterChain;

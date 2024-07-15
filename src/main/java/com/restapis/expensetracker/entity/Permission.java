@@ -17,7 +17,7 @@ public class Permission extends Audit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int permissionId;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @ManyToMany(mappedBy = "permissions")

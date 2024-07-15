@@ -10,11 +10,13 @@ import com.restapis.expensetracker.model.api.ApiResponse;
 import com.restapis.expensetracker.model.forget_password.ForgetPasswordRequest;
 import com.restapis.expensetracker.model.login.LoginRequest;
 import com.restapis.expensetracker.model.login.LoginResponse;
+import com.restapis.expensetracker.model.renew_access_token.RenewAccessTokenResponse;
 import com.restapis.expensetracker.model.reset_password.ResetPasswordRequest;
-import com.restapis.expensetracker.model.send_otp_mail_again.SendOtpMailAgainRequest;
+import com.restapis.expensetracker.model.send_verification_mail_again.SendVerificationMailAgainRequest;
 import com.restapis.expensetracker.model.sign_up.UserInfoRequest;
 import com.restapis.expensetracker.model.sign_up.UserInfoResponse;
-import com.restapis.expensetracker.model.verify_otp.OtpRequest;
+import com.restapis.expensetracker.model.user_info.UserInfoUserDetailsService;
+import com.restapis.expensetracker.model.verify_email.VerifyEmailRequest;
 import com.restapis.expensetracker.repository.OtpRepository;
 import com.restapis.expensetracker.repository.ResetPasswordTokenRepository;
 import com.restapis.expensetracker.repository.RoleRepository;
@@ -23,10 +25,12 @@ import com.restapis.expensetracker.service.AuthenticationService;
 import com.restapis.expensetracker.util.JwtUtil;
 import com.restapis.expensetracker.util.MailUtil;
 import com.restapis.expensetracker.util.OtpUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
@@ -42,6 +46,8 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
     private static final int OTP_LENGTH = 6;
+    private static final String SIGNUP_TEMPLATE = "signup";
+    private static final String RESEND_VERIFY_EMAIL = "resend-verify-email";
 
     private final UserInfoRepository userInfoRepository;
     private final ModelMapper modelMapper;
@@ -53,6 +59,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final OtpUtil otpUtil;
     private final ResetPasswordTokenRepository resetPasswordTokenRepository;
     private final TemplateEngine templateEngine;
+    private final UserInfoUserDetailsService userInfoUserDetailsService;
 
     public AuthenticationServiceImpl(
             UserInfoRepository userInfoRepository,
@@ -64,7 +71,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             OtpRepository otpRepository,
             OtpUtil otpUtil,
             ResetPasswordTokenRepository resetPasswordTokenRepository,
-            TemplateEngine templateEngine) {
+            TemplateEngine templateEngine, UserInfoUserDetailsService userInfoUserDetailsService) {
         this.userInfoRepository = userInfoRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
@@ -75,10 +82,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.otpUtil = otpUtil;
         this.resetPasswordTokenRepository = resetPasswordTokenRepository;
         this.templateEngine = templateEngine;
+        this.userInfoUserDetailsService = userInfoUserDetailsService;
     }
 
     @Override
-    public UserInfoResponse signup(UserInfoRequest userInfoRequest) throws RestException {
+    public ApiResponse signup(UserInfoRequest userInfoRequest) throws RestException {
         String email = userInfoRequest.getEmail();
 
         Optional<UserInfo> isUserInfoExists = userInfoRepository.findByEmail(email);
@@ -99,21 +107,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         userInfo.setVerified(false);
         UserInfo userInfoInserted = userInfoRepository.save(userInfo);
 
-        CompletableFuture.runAsync(() -> otpUtil.generateOtpAndSendEmail(userInfoInserted, OtpType.EMAIL));
+        CompletableFuture.runAsync(() -> otpUtil
+                .generateOtpAndSendEmail(userInfoInserted, OtpType.EMAIL, SIGNUP_TEMPLATE));
 
-        return modelMapper.map(userInfoInserted, UserInfoResponse.class);
+        return new ApiResponse("User registered successfully");
     }
 
     @Override
-    public ApiResponse verifyOtp(OtpRequest otpRequest) throws RestException {
-        UserInfo userInfo = userInfoRepository.findByEmail(otpRequest.getEmail()).orElseThrow(
-                () -> new RestException("User not found for email: " + otpRequest.getEmail())
+    public ApiResponse verifyEmail(VerifyEmailRequest verifyEmailRequest) throws RestException {
+        UserInfo userInfo = userInfoRepository.findByEmail(verifyEmailRequest.getEmail()).orElseThrow(
+                () -> new RestException("User not found for email: " + verifyEmailRequest.getEmail())
         );
 
-        Otp otp = otpRepository.findByEmail(otpRequest.getEmail()).orElseThrow(() ->
+        Otp otp = otpRepository.findByEmail(verifyEmailRequest.getEmail()).orElseThrow(() ->
                 new RestException("Invalid OTP"));
 
-        if(!otpRequest.getOtp().equals(otp.getOtp())) {
+        if(!verifyEmailRequest.getOtp().equals(otp.getOtp())) {
             throw new RestException("Invalid OTP");
         }
 
@@ -131,11 +140,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public ApiResponse sendOtpMailAgain(SendOtpMailAgainRequest sendOtpMailAgainRequest) throws RestException {
-        UserInfo userInfo = userInfoRepository.findByEmail(sendOtpMailAgainRequest.getEmail()).orElseThrow(() ->
-                new RestException("User not found for email: " + sendOtpMailAgainRequest.getEmail()));
+    public ApiResponse sendVerificationMailAgain(
+            SendVerificationMailAgainRequest sendVerificationMailAgainRequest
+    ) throws RestException {
+        UserInfo userInfo = userInfoRepository.findByEmail(sendVerificationMailAgainRequest.getEmail()).orElseThrow(() ->
+                new RestException("User not found for email: " + sendVerificationMailAgainRequest.getEmail()));
 
-        otpUtil.generateOtpAndSendEmail(userInfo, OtpType.EMAIL);
+        otpUtil.generateOtpAndSendEmail(userInfo, OtpType.EMAIL, RESEND_VERIFY_EMAIL);
 
         return new ApiResponse("OTP sent successfully");
     }
@@ -189,7 +200,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         MailUtil.sendEmail(userInfo.getEmail(), "Reset Password", emailTemplate);
 
-
         ResetPasswordToken resetPasswordToken = ResetPasswordToken.builder()
                 .email(userInfo.getEmail())
                 .token(token)
@@ -214,13 +224,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new RestException("Token has expired");
         }
 
-        if(resetPasswordToken.isUsed()) {
-            throw new RestException("Token has already been used");
-        }
-
-        resetPasswordToken.setUsed(true);
-        resetPasswordTokenRepository.save(resetPasswordToken);
-
         return new ApiResponse("Token validated successfully");
     }
 
@@ -234,15 +237,57 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new RestException("Token has expired");
         }
 
+        if(resetPasswordToken.isUsed()) {
+            throw new RestException("Token has already been used");
+        }
+
         String email = resetPasswordToken.getEmail();
 
         UserInfo userInfo = userInfoRepository.findByEmail(email).orElseThrow(() ->
                 new RestException("User not found for email: " + email));
+
+        String oldEncodedPassword = userInfo.getPassword();
+
+        if(passwordEncoder.matches(resetPasswordRequest.getPassword(), oldEncodedPassword)) {
+            throw new RestException("New password cannot be same as old password");
+        }
 
         userInfo.setPassword(passwordEncoder.encode(resetPasswordRequest.getPassword()));
         userInfoRepository.save(userInfo);
 
         resetPasswordTokenRepository.delete(resetPasswordToken);
         return new ApiResponse("Password reset successfully");
+    }
+
+    @Override
+    public RenewAccessTokenResponse renewAccessToken(HttpServletRequest request) throws RestException {
+        String authorization = request.getHeader("Authorization");
+
+        if(authorization == null) {
+            throw new RestException("Authorization header is missing");
+        }
+
+        if(authorization.startsWith("Bearer ")) {
+            authorization = authorization.substring(7);
+        }
+
+        String refreshToken = jwtUtil.extractToken(authorization);
+        String email= jwtUtil.extractUsername(refreshToken);
+
+        if(email == null) {
+            throw new RestException("Invalid refresh token");
+        }
+
+        UserDetails userDetails = userInfoUserDetailsService.loadUserByUsername(email);
+
+        if(Boolean.TRUE.equals(jwtUtil.validateToken(refreshToken, userDetails))) {
+            String username = userDetails.getUsername();
+            UserInfo userInfo = userInfoRepository.findByEmail(username).orElseThrow(() ->
+                new RestException("User not found for email: " + username));
+            String accessToken = jwtUtil.generateToken(userInfo, 9);
+            return new RenewAccessTokenResponse(accessToken);
+        } else {
+            throw new RestException("Invalid refresh token");
+        }
     }
 }

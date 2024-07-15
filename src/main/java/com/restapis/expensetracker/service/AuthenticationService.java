@@ -5,20 +5,23 @@ import com.restapis.expensetracker.model.api.ApiResponse;
 import com.restapis.expensetracker.model.forget_password.ForgetPasswordRequest;
 import com.restapis.expensetracker.model.login.LoginRequest;
 import com.restapis.expensetracker.model.login.LoginResponse;
+import com.restapis.expensetracker.model.renew_access_token.RenewAccessTokenResponse;
 import com.restapis.expensetracker.model.reset_password.ResetPasswordRequest;
-import com.restapis.expensetracker.model.send_otp_mail_again.SendOtpMailAgainRequest;
+import com.restapis.expensetracker.model.send_verification_mail_again.SendVerificationMailAgainRequest;
 import com.restapis.expensetracker.model.sign_up.UserInfoRequest;
-import com.restapis.expensetracker.model.sign_up.UserInfoResponse;
-import com.restapis.expensetracker.model.verify_otp.OtpRequest;
+import com.restapis.expensetracker.model.verify_email.VerifyEmailRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.UUID;
 
 public interface AuthenticationService {
-    UserInfoResponse signup(UserInfoRequest userInfoRequest) throws RestException;
+    ApiResponse signup(UserInfoRequest userInfoRequest) throws RestException;
 
-    ApiResponse verifyOtp(OtpRequest otpRequest) throws RestException;
+    ApiResponse verifyEmail(VerifyEmailRequest verifyEmailRequest) throws RestException;
 
-    ApiResponse sendOtpMailAgain(SendOtpMailAgainRequest sendOtpMailAgainRequest) throws RestException;
+    ApiResponse sendVerificationMailAgain(
+            SendVerificationMailAgainRequest sendVerificationMailAgainRequest
+    ) throws RestException;
 
     LoginResponse login(LoginRequest loginRequest) throws RestException;
 
@@ -27,4 +30,6 @@ public interface AuthenticationService {
     ApiResponse validateResetPasswordToken(UUID token) throws RestException;
 
     ApiResponse resetPassword(UUID token, ResetPasswordRequest resetPasswordRequest) throws RestException;
+
+    RenewAccessTokenResponse renewAccessToken(HttpServletRequest request) throws RestException;
 }
