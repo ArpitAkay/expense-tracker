@@ -9,8 +9,8 @@ public interface Endpoint {
 
     // Authentication Endpoints
     String SIGN_UP =  "/signup";
-    String VERIFY_OTP = "/verify-otp";
-    String SEND_OTP_MAIL_AGAIN = "/send-otp-mail-again";
+    String VERIFY_EMAIL = "/verify-email";
+    String SEND_VERIFICATION_MAIL_AGAIN = "/send-verification-mail-again";
     String LOGIN = "/login";
     String FORGET_PASSWORD = "/forget-password";
     String VALIDATE_RESET_PASSWORD_TOKEN = "/validate-reset-password-token";

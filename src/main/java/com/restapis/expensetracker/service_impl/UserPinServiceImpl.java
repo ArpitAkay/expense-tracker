@@ -28,10 +28,16 @@ public class UserPinServiceImpl implements UserPinService {
     public ApiResponse addedUserPin(int userId, UserPinRequest userPinRequest) throws RestException {
         UserInfo userInfo = securityUtil.checkIfUserIsAuthorized(userId);
 
-        String pin = userPinRequest.getPin();
-        String encodedPin = passwordEncoder.encode(pin);
+        String newPin = userPinRequest.getPin();
+        String oldEncodedPin = userInfo.getPin();
 
-        userInfo.setPin(encodedPin);
+        if(oldEncodedPin != null && passwordEncoder.matches(newPin, oldEncodedPin)) {
+            throw new RestException("New pin cannot be same as old pin");
+        }
+
+        String encodedNewPin = passwordEncoder.encode(newPin);
+
+        userInfo.setPin(encodedNewPin);
         userInfoRepository.save(userInfo);
 
         return new ApiResponse("Pin added successfully");

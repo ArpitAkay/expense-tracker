@@ -8,10 +8,9 @@ import com.restapis.expensetracker.model.login.LoginRequest;
 import com.restapis.expensetracker.model.login.LoginResponse;
 import com.restapis.expensetracker.model.renew_access_token.RenewAccessTokenResponse;
 import com.restapis.expensetracker.model.reset_password.ResetPasswordRequest;
-import com.restapis.expensetracker.model.send_otp_mail_again.SendOtpMailAgainRequest;
+import com.restapis.expensetracker.model.send_verification_mail_again.SendVerificationMailAgainRequest;
 import com.restapis.expensetracker.model.sign_up.UserInfoRequest;
-import com.restapis.expensetracker.model.sign_up.UserInfoResponse;
-import com.restapis.expensetracker.model.verify_otp.OtpRequest;
+import com.restapis.expensetracker.model.verify_email.VerifyEmailRequest;
 import com.restapis.expensetracker.service.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -33,21 +32,21 @@ public class AuthenticationController {
 
 //    @Tag(name = "Signup", description = "This endpoint is used to sign up a new user.")
     @PostMapping(Endpoint.SIGN_UP)
-    public ResponseEntity<UserInfoResponse> signup(@Valid @RequestBody UserInfoRequest userInfoRequest)
+    public ResponseEntity<ApiResponse> signup(@Valid @RequestBody UserInfoRequest userInfoRequest)
             throws RestException {
         return new ResponseEntity(authenticationService.signup(userInfoRequest), HttpStatus.CREATED);
     }
 
-    @PostMapping(Endpoint.VERIFY_OTP)
-    public ResponseEntity<ApiResponse> verifyOtp(@Valid @RequestBody OtpRequest otpRequest)
+    @PostMapping(Endpoint.VERIFY_EMAIL)
+    public ResponseEntity<ApiResponse> verifyEmail(@Valid @RequestBody VerifyEmailRequest verifyEmailRequest)
             throws RestException {
-        return new ResponseEntity<>(authenticationService.verifyOtp(otpRequest), HttpStatus.OK);
+        return new ResponseEntity<>(authenticationService.verifyEmail(verifyEmailRequest), HttpStatus.OK);
     }
 
-    @PostMapping(Endpoint.SEND_OTP_MAIL_AGAIN)
-    public ResponseEntity<ApiResponse> sendOtpMailAgain(
-            @Valid @RequestBody SendOtpMailAgainRequest sendOtpMailAgainRequest) throws RestException {
-        return new ResponseEntity<>(authenticationService.sendOtpMailAgain(sendOtpMailAgainRequest), HttpStatus.OK);
+    @PostMapping(Endpoint.SEND_VERIFICATION_MAIL_AGAIN)
+    public ResponseEntity<ApiResponse> sendVerificationMailAgain(
+            @Valid @RequestBody SendVerificationMailAgainRequest sendVerificationMailAgainRequest) throws RestException {
+        return new ResponseEntity<>(authenticationService.sendVerificationMailAgain(sendVerificationMailAgainRequest), HttpStatus.OK);
     }
 
     @PostMapping(Endpoint.LOGIN)
