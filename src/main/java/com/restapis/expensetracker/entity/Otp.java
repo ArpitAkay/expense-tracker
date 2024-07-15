@@ -19,12 +19,15 @@ public class Otp extends Audit {
     private int otpId;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private OtpType type;
 
+    @Column(nullable = false)
     private String email;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String otp;
 
+    @Column(nullable = false)
     private Instant expiryTime;
 }

@@ -19,13 +19,15 @@ public class ResetPasswordToken extends Audit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int resetPasswordTokenId;
 
+    @Column(nullable = false)
     private String email;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private UUID token;
 
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean isUsed = false;
 
+    @Column(nullable = false)
     private Instant expiryTime;
 }

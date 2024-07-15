@@ -25,17 +25,20 @@ public class UserInfo extends Audit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int userId;
 
+    @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
     private String phoneNumber;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false)
     private String password;
 
     @Column(nullable = false, columnDefinition = "boolean default false")
-    private boolean isVerified = false;
+    private boolean isVerified;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -51,5 +54,6 @@ public class UserInfo extends Audit {
     )
     private Set<Role> roles;
 
+    @Column(nullable = true)
     private String pin;
 }

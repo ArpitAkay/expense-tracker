@@ -1,4 +1,4 @@
-package com.restapis.expensetracker.model.verify_otp;
+package com.restapis.expensetracker.model.verify_email;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class OtpRequest {
+public class VerifyEmailRequest {
     @Email
     private String email;
     @Size(min = 6, max = 6)

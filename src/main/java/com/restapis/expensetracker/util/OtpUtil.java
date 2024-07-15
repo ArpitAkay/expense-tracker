@@ -11,6 +11,7 @@ import org.thymeleaf.context.Context;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 
 @Component
 public class OtpUtil {
@@ -27,8 +28,14 @@ public class OtpUtil {
         this.templateEngine = templateEngine;
     }
 
-    public void generateOtpAndSendEmail(UserInfo userInfo, OtpType otpType) {
+    public void generateOtpAndSendEmail(UserInfo userInfo, OtpType otpType, String templateName) {
         String email = userInfo.getEmail();
+
+        Optional<Otp> otpInfo = otpRepository.findByEmail(email);
+
+        if (otpInfo.isPresent()) {
+            otpRepository.delete(otpInfo.get());
+        }
 
         String otp = generateOtp();
 
@@ -36,7 +43,7 @@ public class OtpUtil {
         context.setVariable("name", userInfo.getName());
         context.setVariable("otp", otp);
 
-        String emailTemplate = templateEngine.process("signup", context);
+        String emailTemplate = templateEngine.process(templateName, context);
 
         MailUtil.sendEmail(email, "OTP for Expense Tracker Password Reset", emailTemplate);
 
